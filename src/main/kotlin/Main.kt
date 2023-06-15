@@ -63,6 +63,7 @@ class Controller() {
     }
 
     private fun actualizarPlaneta(numSS:Int) {
+        solicitarSS("planeta para actualizar: ")
         var id = Integer.parseInt(sc.nextLine())
         var atrP = leerAtributosPl(1)
         var nombreP = atrP.get(0)?.get(0).toString()
@@ -195,11 +196,10 @@ fun Menu() {
 
 fun menuSP() {
     println("1.- Agregar planeta")
-    println("2.- Mostrar planetas")
-    println("3.- Actualizar planeta")
-    println("4.- Borrar planeta")
-    println("5.- Menú Principal")
-    println("Opción: ")
+    println("2.- Actualizar planeta")
+    println("3.- Borrar planeta")
+    println("4.- Menú Principal")
+    print("Opción: ")
 }
 
 fun leerAtributosPl(numPlanetas: Int): HashMap<Int, Array<Any?>> {
