@@ -54,6 +54,8 @@ class Controller() {
             (1) -> {
                 var atr = leerAtributosSS()
                 crearSS(atr)
+                Menu()
+                opcionesPrincipales()
             }
             (2) -> {
                 mostrarSistemas()
@@ -81,8 +83,11 @@ class Controller() {
     }
     private fun mostrarSistemas(){
         println(ss.getSistemas().size)
-        for(i in 0 until ss.getSistemas().size){
-            var sistema = ss.getSistema(i + 1)
+        for(i in 0 until (ss.getSistemas().size + 1)){
+            var sistema = ss.getSistema(i)
+            println(sistema)
+            println(i)
+
             if(sistema != null) {
                 mostrarSistema(i , sistema)
             }
@@ -105,9 +110,10 @@ class Controller() {
             planetas.add(ss.createPlaneta(nombreP, numeroLunas, tieneVida, diametro, clasificacion))
         }
         var sistema = ss.createSistemaSolar(nombre, numPlanetas, planetas, extension, fecha)
-        var id = ss.getIdSistema(sistema)
-        menuSP()
-        opcionesSP(id)
+
+        //var id = ss.getIdSistema(sistema)
+        //menuSP()
+        //opcionesSP(ss.id)
         //crearPls(ss.getId(), numPlanetas, atrP)
     }
     private fun eliminarSistema(numSS:Int) {
@@ -149,6 +155,7 @@ class Controller() {
     }
     private fun opcionesASS(numSS: Int){
         var opcion = Integer.parseInt(sc.nextLine())
+        println("num ss: " + numSS)
         when(opcion){
             (1)->{
                 mostrarMensaje("Ingrese el nuevo nombre: ")
@@ -168,9 +175,13 @@ class Controller() {
             }
             (4)->{
                 agregarPlaneta(numSS)
+                menuActualizarSS()
+                opcionesASS(numSS)
             }
             (5)->{
                 eliminarPl(numSS)
+                menuActualizarSS()
+                opcionesASS(numSS)
             }
             (6)->{
                 actualizarInfoPlaneta(numSS)
@@ -233,6 +244,7 @@ class Controller() {
     private fun eliminarPlaneta(numSS: Int, numPl:Int) {
         var bool = ss.deletePlaneta(numSS,numPl)
         if(bool){
+            ss.getSistemas().get(numSS)?.setNumeroPlanetas(ss.getSistemas().get(numSS)!!.getNumeroPlanetas() - 1)
             mostrarMensaje("Eliminación exitosa")
         }else{
             mostrarMensaje("Error en la eliminación")
@@ -257,11 +269,11 @@ class Controller() {
             sis.setNumeroPlanetas(numPla + 1)
 
         }else{
-
         }
     }
     private fun opcionesAPl(numSS: Int, numPl:Int){
         var opcion = Integer.parseInt(sc.nextLine())
+        println("num ss: " + numSS)
         mostrarMensaje("--Actualización del Planeta " + (numPl + 1))
         when(opcion){
             (1)->{
@@ -470,7 +482,7 @@ class SistemaSolar(
 
 class SistemaSolarDAO {
     private val sistemaSolarList = HashMap<Int, SistemaSolar>()
-    private var id = 0
+    var id = 0
     fun createSistemaSolar(
         name: String,
         numPlanetas: Int,
@@ -499,7 +511,8 @@ class SistemaSolarDAO {
     }
 
     fun deletePlaneta(ss:Int, id:Int):Boolean{
-        var planeta = sistemaSolarList[ss]?.getPlanetas()?.get(id)
+        var planeta = sistemaSolarList[ss]?.getPlanetas()?.get(id-1)
+
         if(planeta != null) {
             sistemaSolarList[ss]?.getPlanetas()?.remove(planeta)
             return true
