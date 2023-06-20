@@ -1,23 +1,23 @@
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.*
+
 fun main(args: Array<String>) {
-    var file = File("sistemaSolar.json")
-    if(file.exists()){
-    var gson = Gson()
-    FileReader("sistemaSolar.json").use { reader ->
-        val ssDAO = gson.fromJson(reader, SistemaSolarDAO::class.java)
-        var controller = Controller()
-        controller.ss = ssDAO
-        Menu()
-        controller.opcionesPrincipales()
-    }
-    }else{
+    var file = File("src/main/sistemaSolar.json")
+    if (file.exists()) {
+        var gson = Gson()
+        FileReader("src/main/sistemaSolar.json").use { reader ->
+            val ssDAO = gson.fromJson(reader, SistemaSolarDAO::class.java)
+            var controller = Controller()
+            controller.ss = ssDAO
+            Menu()
+            controller.opcionesPrincipales()
+        }
+    } else {
         var controller = Controller()
         Menu()
         controller.opcionesPrincipales()
@@ -28,19 +28,16 @@ fun main(args: Array<String>) {
 class Controller() {
     var sc = Scanner(System.`in`)
     var ss = SistemaSolarDAO()
-    fun opcionesSP(numSS:Int) {
+    fun opcionesSP(numSS: Int) {
         var opcion = Integer.parseInt(sc.nextLine())
         when (opcion) {
-            // Actualizar Sistema
             (1) -> {
                 menuActualizarSS()
                 opcionesASS(numSS)
             }
-            // Eliminar sistema
             (2) -> {
                 eliminarSistema(numSS)
             }
-            // Menu principal
             (3) -> {
                 Menu()
                 opcionesPrincipales()
@@ -81,120 +78,118 @@ class Controller() {
             }
         }
     }
-    private fun mostrarSistemas(){
-        println(ss.getSistemas().size)
-        for(i in 0 until (ss.getSistemas().size + 1)){
-            var sistema = ss.getSistema(i)
-            println(sistema)
-            println(i)
 
-            if(sistema != null) {
-                mostrarSistema(i , sistema)
+    private fun mostrarSistemas() {
+        for (i in 0 until (ss.getSistemas().size + 1)) {
+            var sistema = ss.getSistema(i)
+            if (sistema != null) {
+                mostrarSistema(i, sistema)
             }
         }
     }
+
     private fun crearSS(atr: Array<Any?>) {
         var nombre = atr[0].toString()
         var numPlanetas = Integer.parseInt(atr[1].toString())
         var extension = atr[2].toString().toDouble()
-        val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-        var fecha = LocalDate.parse(atr[3].toString(), dateFormatter)
-        var planetas:ArrayList<Planeta> = arrayListOf()
-        for(i in 0 until numPlanetas ){
+        var estrellaCentral = atr[3].toString().toCharArray()[0]
+        var planetas: ArrayList<Planeta> = arrayListOf()
+        for (i in 0 until numPlanetas) {
             var atrP = leerAtributosPl(i + 1)
             var nombreP = atrP.get(0).toString()
             var numeroLunas = Integer.parseInt(atrP.get(1)?.toString())
-            var tieneVida = atrP.get(2).toString().toBoolean()
+            var tieneVida = false
+            if(Integer.parseInt(atrP.get(2).toString()) == 1){
+                tieneVida = true
+            }
             var diametro = atrP.get(3).toString().toDouble()
             var clasificacion = atrP.get(4).toString().toCharArray().get(0)
             planetas.add(ss.createPlaneta(nombreP, numeroLunas, tieneVida, diametro, clasificacion))
         }
-        var sistema = ss.createSistemaSolar(nombre, numPlanetas, planetas, extension, fecha)
+        ss.createSistemaSolar(nombre, numPlanetas, planetas, extension, estrellaCentral)
+        mostrarMensaje("Sistema creado exitosamente")
+        mostrarMensaje("---------------------------")
 
-        //var id = ss.getIdSistema(sistema)
-        //menuSP()
-        //opcionesSP(ss.id)
-        //crearPls(ss.getId(), numPlanetas, atrP)
     }
-    private fun eliminarSistema(numSS:Int) {
+
+    private fun eliminarSistema(numSS: Int) {
         var bool = ss.deleteSistemaSolar(numSS)
-        if(bool) {
+        if (bool) {
             mostrarMensaje("El sistema solar ha sido eliminado exitosamente")
-        //mensajeConfirmacion("ha sido eliminado exitosamente")
-        }else{
+            mostrarMensaje("-----------------------------------------------")
+        } else {
             mostrarMensaje("Error al intentar borrar el sistema solar")
-            //mensajeConfirmacion("no ha sido eliminado debido a un error")
+            mostrarMensaje("-----------------------------------------")
         }
         Menu()
         opcionesPrincipales()
     }
 
-    private fun actualizarSistema(numAtr: Int,idSS: Int, atrib:String) {
-        //solicitarSS("sistema solar a actualizar: ")
-        //var sis = Integer.parseInt(sc.nextLine())
-        var exito:Boolean = false
-        when(numAtr){
-            (1)->{
+    private fun actualizarSistema(numAtr: Int, idSS: Int, atrib: String) {
+        var exito: Boolean = false
+        when (numAtr) {
+            (1) -> {
                 println(idSS)
-                exito = ss.updateNombreSS(idSS,atrib)
+                exito = ss.updateNombreSS(idSS, atrib)
             }
-            (2)->{
-                exito = ss.updateExtensionSS(idSS,atrib.toDouble())
+            (2) -> {
+                exito = ss.updateExtensionSS(idSS, atrib.toDouble())
             }
-            (3)->{
-                exito = ss.updateFechaSS(idSS,atrib)
+            (3) -> {
+                exito = ss.updateFechaSS(idSS, atrib)
             }
         }
-        if(exito){
+        if (exito) {
             mostrarMensaje("Actualización exitosa")
-        }else{
+            mostrarMensaje("---------------------")
+        } else {
             mostrarMensaje("Error en la actualización")
+            mostrarMensaje("-------------------------")
         }
         menuSP()
         opcionesSP(idSS)
     }
-    private fun opcionesASS(numSS: Int){
+
+    private fun opcionesASS(numSS: Int) {
         var opcion = Integer.parseInt(sc.nextLine())
-        println("num ss: " + numSS)
-        when(opcion){
-            (1)->{
+        when (opcion) {
+            (1) -> {
                 mostrarMensaje("Ingrese el nuevo nombre: ")
-                var nombre= sc.nextLine()
+                var nombre = sc.nextLine()
                 println(numSS)
-                actualizarSistema(1,numSS, nombre)
+                actualizarSistema(1, numSS, nombre)
             }
-            (2)->{
+            (2) -> {
                 mostrarMensaje("Ingrese la nueva extension: ")
-                var extension= sc.nextLine()
-                actualizarSistema(2,numSS, extension)
+                var extension = sc.nextLine()
+                actualizarSistema(2, numSS, extension)
             }
-            (3)->{
-                mostrarMensaje("Ingrese la nueva fecha de descubrimiento: ")
-                var fecha= sc.nextLine()
-                actualizarSistema(3,numSS, fecha)
+            (3) -> {
+                mostrarMensaje("Ingrese la nueva estrella central G: estrella amarilla M: enana roja O: estrella masiva: ")
+                var estrella = sc.nextLine()
+                actualizarSistema(3, numSS, estrella)
             }
-            (4)->{
+            (4) -> {
                 agregarPlaneta(numSS)
                 menuActualizarSS()
                 opcionesASS(numSS)
             }
-            (5)->{
+            (5) -> {
                 eliminarPl(numSS)
                 menuActualizarSS()
                 opcionesASS(numSS)
             }
-            (6)->{
+            (6) -> {
                 actualizarInfoPlaneta(numSS)
             }
-            (7)->{
-                //var numSS = ss.getIdSistema(numSS)
+            (7) -> {
                 menuSP()
                 opcionesSP(numSS)
             }
         }
     }
 
-    private fun actualizarInfoPlaneta(numSS: Int ) {
+    private fun actualizarInfoPlaneta(numSS: Int) {
         var sis = ss.getSistema(numSS)
         var arrPL = sis?.getPlanetas()
         mostrarPlanetas(arrPL)
@@ -203,34 +198,38 @@ class Controller() {
         menuActualizarPl()
         opcionesAPl(numSS, numPL)
     }
-    private fun actualizarPlaneta(numSS: Int, numPl:Int, opt:Int, atrib: String ) {
-        var exito:Boolean = false
-            when (opt) {
-                (1) -> {
-                    exito = ss.updateNombrePl(numSS, numPl,atrib)
-                }
 
-                (2) -> {
-                    exito = ss.updateNumLPl(numSS, numPl,Integer.parseInt(atrib))
-                }
-                (3) -> {
-                    exito = ss.updateDiametroPl(numSS, numPl,atrib.toDouble())
-                }
-                (4)->{
-                    exito = ss.updateExistenciaVidaPl(numSS, numPl)
-                }
-                (5)->{
-                    exito = ss.updateClasificacionPl(numSS, numPl, atrib.toCharArray()[0])
-                }
+    private fun actualizarPlaneta(numSS: Int, numPl: Int, opt: Int, atrib: String) {
+        var exito: Boolean = false
+        when (opt) {
+            (1) -> {
+                exito = ss.updateNombrePl(numSS, numPl, atrib)
             }
-            if (exito) {
-                mostrarMensaje("Actualización de planeta exitosa")
-            } else {
-                mostrarMensaje("Error en la actualización de planeta")
+
+            (2) -> {
+                exito = ss.updateNumLPl(numSS, numPl, Integer.parseInt(atrib))
             }
+            (3) -> {
+                exito = ss.updateDiametroPl(numSS, numPl, atrib.toDouble())
+            }
+            (4) -> {
+                exito = ss.updateExistenciaVidaPl(numSS, numPl)
+            }
+            (5) -> {
+                exito = ss.updateClasificacionPl(numSS, numPl, atrib.toCharArray()[0])
+            }
+        }
+        if (exito) {
+            mostrarMensaje("Actualización de planeta exitosa")
+            mostrarMensaje("--------------------------------")
+        } else {
+            mostrarMensaje("Error en la actualización de planeta")
+            mostrarMensaje("------------------------------------")
+        }
         menuSP()
         opcionesSP(numSS)
     }
+
     private fun eliminarPl(numSS: Int) {
         var sis = ss.getSistema(numSS)
         var arrPL = sis?.getPlanetas()
@@ -241,13 +240,15 @@ class Controller() {
     }
 
 
-    private fun eliminarPlaneta(numSS: Int, numPl:Int) {
-        var bool = ss.deletePlaneta(numSS,numPl)
-        if(bool){
+    private fun eliminarPlaneta(numSS: Int, numPl: Int) {
+        var bool = ss.deletePlaneta(numSS, numPl)
+        if (bool) {
             ss.getSistemas().get(numSS)?.setNumeroPlanetas(ss.getSistemas().get(numSS)!!.getNumeroPlanetas() - 1)
             mostrarMensaje("Eliminación exitosa")
-        }else{
+            mostrarMensaje("-------------------")
+        } else {
             mostrarMensaje("Error en la eliminación")
+            mostrarMensaje("-----------------------")
         }
         menuSP()
         opcionesSP(numSS)
@@ -255,55 +256,57 @@ class Controller() {
 
     private fun agregarPlaneta(sistema: Int) {
         var sis = ss.getSistema(sistema)
-        if(sis!=null) {
+        if (sis != null) {
             var planetas = sis.getPlanetas()
             var numPla = sis.getNumeroPlanetas()
             mostrarMensaje("Ingrese los atributos del nuevo planeta: ")
             var atrP = leerAtributosPl(numPla + 1)
             var nombreP = atrP.get(0).toString()
             var numeroLunas = Integer.parseInt(atrP.get(1)?.toString())
-            var tieneVida = atrP.get(2).toString().toBoolean()
+            var tieneVida: Boolean = false
+            if(Integer.parseInt(atrP.get(2).toString()) == 0){
+                tieneVida = true
+            }
             var diametro = atrP.get(3).toString().toDouble()
             var clasificacion = atrP.get(4).toString().toCharArray().get(0)
             planetas.add(ss.createPlaneta(nombreP, numeroLunas, tieneVida, diametro, clasificacion))
             sis.setNumeroPlanetas(numPla + 1)
-
-        }else{
         }
     }
-    private fun opcionesAPl(numSS: Int, numPl:Int){
+
+    private fun opcionesAPl(numSS: Int, numPl: Int) {
         var opcion = Integer.parseInt(sc.nextLine())
-        println("num ss: " + numSS)
-        mostrarMensaje("--Actualización del Planeta " + (numPl + 1))
-        when(opcion){
-            (1)->{
+        mostrarMensaje("--Actualización del Planeta " + (numPl + 1) + "--")
+        when (opcion) {
+            (1) -> {
                 mostrarMensaje("Ingrese el nuevo nombre: ")
                 var nombre = sc.nextLine()
                 actualizarPlaneta(numSS, numPl, 1, nombre)
             }
-            (2)->{
+            (2) -> {
                 mostrarMensaje("Ingrese el nuevo número de lunas: ")
                 var numLunas = sc.nextLine()
                 actualizarPlaneta(numSS, numPl, 2, numLunas)
             }
-            (3)->{
+            (3) -> {
                 mostrarMensaje("Ingrese el nuevo diámetro: ")
                 var diametro = sc.nextLine()
                 actualizarPlaneta(numSS, numPl, 3, diametro)
             }
-            (4)->{
+            (4) -> {
                 actualizarPlaneta(numSS, numPl, 4, "")
             }
-            (5)->{
-                mostrarMensaje("Ingrese la nueva clasificación: ")
+            (5) -> {
+                mostrarMensaje("Ingrese la nueva clasificacion T: planetas rocosos G: planetas gaseosos H: planetas de hielo ")
                 var clasificacion = sc.nextLine()
                 actualizarPlaneta(numSS, numPl, 5, clasificacion)
             }
         }
     }
 }
-fun mostrarPlanetas(arrPl: MutableList<Planeta>?){
-    if(arrPl != null) {
+
+fun mostrarPlanetas(arrPl: MutableList<Planeta>?) {
+    if (arrPl != null) {
         for (j in 0 until arrPl.size) {
             var planeta = arrPl.get(j)
             println("Planeta " + (j + 1))
@@ -315,7 +318,8 @@ fun mostrarPlanetas(arrPl: MutableList<Planeta>?){
         }
     }
 }
-fun menuActualizarPl(){
+
+fun menuActualizarPl() {
     println("-------Actualización de Planeta-------")
     println("1.- Actualizar nombre")
     println("2.- Actualizar número de lunas")
@@ -325,7 +329,8 @@ fun menuActualizarPl(){
     println("6.- Atras")
     print("Opción: ")
 }
-fun menuActualizarSS(){
+
+fun menuActualizarSS() {
     println("-------Actualización de información de Sistema Solar-------")
     println("1.- Actualizar nombre")
     println("2.- Actualizar extensión")
@@ -336,6 +341,7 @@ fun menuActualizarSS(){
     println("7.- Atras")
     print("Opción: ")
 }
+
 fun Menu() {
     println("-------Sistema CRUD para Sistema Solares-------")
     println("1.- Agregar Sistema solar")
@@ -364,13 +370,13 @@ fun leerAtributosPl(numPlaneta: Int): Array<Any?> {
     println("Ingrese el número de lunas")
     var nl = sc.nextLine()
     arr[1] = nl
-    println("Esta habitado: 0:Si 1:No")
+    println("Esta habitado 1:Si 0:No")
     var b = sc.nextLine()
     arr[2] = b
     println("Ingrese el diametro")
     var d = sc.nextLine()
     arr[3] = d
-    println("Ingrese la clasificacion c: carbono o: oxigeno")
+    println("Ingrese la clasificacion T: planetas rocosos G: planetas gaseosos H: planetas de hielo")
     var fd = sc.nextLine()
     arr[4] = fd
     return arr
@@ -381,48 +387,50 @@ fun leerAtributosSS(): Array<Any?> {
     var sc = Scanner(System.`in`)
     println("Ingrese el nombre: ")
     atr[0] = sc.nextLine()
-    println("Ingrese el número de planetas")
+    println("Ingrese el número de planetas:")
     atr[1] = sc.nextLine()
-    println("Ingrese la extensión")
+    println("Ingrese la extensión:")
     atr[2] = sc.nextLine()
-    println("Ingrese la fecha de descubrimiento en formato dd/MM/aaaa")
+    println("Ingrese la estrella central G: estrella amarilla M: enana roja O: estrella masiva:")
     atr[3] = sc.nextLine()
     return atr
 }
-fun mostrarMensaje(mensaje:String){
+
+fun mostrarMensaje(mensaje: String) {
     println(mensaje)
 }
-fun mostrarSistema(id:Int, sistema: SistemaSolar) {
-            println("Sistema Solar " + (id))
-            println("nombre: " + sistema.getNombre())
-            println("extensión: " + sistema.getExtension())
-            println("fecha descubrimiento: " + sistema.getFechaDescubrimiento())
-            println("número planetas: " + sistema.getNumeroPlanetas())
-            for (j in 0 until sistema.getNumeroPlanetas()) {
-                var planeta = sistema.getPlanetas().get(j)
-                println("Planeta " + (j + 1))
-                println("nombre: " + planeta?.getNombre())
-                println("número de lunas: " + planeta?.getNumeroLunas())
-                println("diámetro: " + planeta?.getDiametro())
-                println("habitado: " + planeta?.getHabitado())
-                println("clasificación: " + planeta?.getClasificacion())
-            }
-            println("")
-        }
+
+fun mostrarSistema(id: Int, sistema: SistemaSolar) {
+    println("Sistema Solar " + (id))
+    println("nombre: " + sistema.getNombre())
+    println("extensión: " + sistema.getExtension())
+    println("estrella central: " + sistema.getEstrellaCentral())
+    println("número planetas: " + sistema.getNumeroPlanetas())
+    for (j in 0 until sistema.getNumeroPlanetas()) {
+        var planeta = sistema.getPlanetas().get(j)
+        println("Planeta " + (j + 1))
+        println("nombre: " + planeta?.getNombre())
+        println("número de lunas: " + planeta?.getNumeroLunas())
+        println("diámetro: " + planeta?.getDiametro())
+        println("habitado: " + planeta?.getHabitado())
+        println("clasificación: " + planeta?.getClasificacion())
+    }
+    println("")
+}
 
 class SistemaSolar(
     private var nombre: String,
     private var numeroPlanetas: Int,
     private var planetas: MutableList<Planeta>,
     private var extension: Double,
-    private var fechaDescubrimiento: LocalDate
+    private var estrellaCentral: Char
 ) {
     init {
         this.nombre
         this.numeroPlanetas
         this.planetas
         this.extension
-        this.fechaDescubrimiento
+        this.estrellaCentral
     }
 
     constructor(
@@ -430,13 +438,13 @@ class SistemaSolar(
         numeroPlanetas: Int,
         planetas: MutableList<Planeta>,
         extension: Double?,
-        fechaDescubrimiento: LocalDate?
+        estrellaCentral: Char
     ) : this(
         nombre,
         numeroPlanetas,
         planetas,
         if (extension == null) 0.0 else extension,
-        if (fechaDescubrimiento == null) LocalDate.of(0, 1, 1) else fechaDescubrimiento
+        estrellaCentral
     )
 
     fun getNombre(): String {
@@ -455,8 +463,8 @@ class SistemaSolar(
         return extension
     }
 
-    fun getFechaDescubrimiento(): LocalDate {
-        return fechaDescubrimiento
+    fun getEstrellaCentral(): Char {
+        return estrellaCentral
     }
 
     fun setNombre(nombre: String) {
@@ -475,8 +483,8 @@ class SistemaSolar(
         this.extension = extension
     }
 
-    fun setFechaDescubrimiento(fechaDescubrimiento: LocalDate) {
-        this.fechaDescubrimiento = fechaDescubrimiento
+    fun setExtrellaCentral(estrellaCentral: Char) {
+        this.estrellaCentral = estrellaCentral
     }
 }
 
@@ -488,47 +496,34 @@ class SistemaSolarDAO {
         numPlanetas: Int,
         planetas: MutableList<Planeta>,
         extension: Double,
-        fechaDescubrimiento: LocalDate
-    ) :SistemaSolar{
-        val sistema = SistemaSolar(name, numPlanetas, planetas, extension, fechaDescubrimiento)
+        estrellaCentral: Char
+    ): SistemaSolar {
+        val sistema = SistemaSolar(name, numPlanetas, planetas, extension, estrellaCentral)
         id++
         sistemaSolarList[id] = sistema
         return sistema
     }
+
     fun createPlaneta(
         name: String,
         numLunas: Int,
         habitado: Boolean,
         diametro: Double,
         clasificacion: Char
-    ):Planeta {
+    ): Planeta {
         val planeta = Planeta(name, numLunas, habitado, diametro, clasificacion)
         return planeta
     }
 
-    fun getPlaneta(ss:Int,id:Int):Planeta?{
-        return sistemaSolarList[ss]?.getPlanetas()?.get(id)
-    }
+    fun deletePlaneta(ss: Int, id: Int): Boolean {
+        var planeta = sistemaSolarList[ss]?.getPlanetas()?.get(id - 1)
 
-    fun deletePlaneta(ss:Int, id:Int):Boolean{
-        var planeta = sistemaSolarList[ss]?.getPlanetas()?.get(id-1)
-
-        if(planeta != null) {
+        if (planeta != null) {
             sistemaSolarList[ss]?.getPlanetas()?.remove(planeta)
             return true
-        }else{
+        } else {
             return false
         }
-    }
-    fun getIdSistema(sistema: SistemaSolar):Int{
-        for(i in 1 until sistemaSolarList.size){
-            if(sistemaSolarList[i]?.equals(sistema) == true){
-                println("Si")
-                return i
-            }
-        }
-        println("no")
-        return -1
     }
 
     fun getSistemas(): HashMap<Int, SistemaSolar> {
@@ -550,88 +545,97 @@ class SistemaSolarDAO {
         }
     }
 
-    fun updateNombreSS(idSS: Int, nombre: String):Boolean {
+    fun updateNombreSS(idSS: Int, nombre: String): Boolean {
         var sistema = sistemaSolarList[idSS]
-        if(sistema!=null) {
+        if (sistema != null) {
             sistema.setNombre(nombre)
             return true
-        }else{
+        } else {
             return false
         }
     }
-    fun updateExtensionSS(idSS:Int, extension:Double ):Boolean{
+
+    fun updateExtensionSS(idSS: Int, extension: Double): Boolean {
         var sistema = sistemaSolarList[idSS]
-        if(sistema!=null) {
+        if (sistema != null) {
             sistema?.setExtension(extension)
             return true
-        }else{
+        } else {
             return false
         }
     }
-    fun updateFechaSS(idSS:Int, atrib:String):Boolean{
-        val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-        var fecha = LocalDate.parse(atrib.toString(), dateFormatter)
+
+    fun updateFechaSS(idSS: Int, atrib: String): Boolean {
+        var estrellaCentral = atrib.toString().toCharArray()[0]
         var sistema = sistemaSolarList[idSS]
-        if(sistema!=null) {
-            sistema?.setFechaDescubrimiento(fecha)
+        if (sistema != null) {
+            sistema?.setExtrellaCentral(estrellaCentral)
             return true
-        }else{
+        } else {
             return false
         }
     }
-    fun updateNombrePl(numSS:Int, numPl: Int, nombre: String):Boolean{
+
+    fun updateNombrePl(numSS: Int, numPl: Int, nombre: String): Boolean {
         var planeta = sistemaSolarList.get(numSS)?.getPlanetas()?.get(numPl)
-        if(planeta != null){
+        if (planeta != null) {
             planeta.setNombre(nombre)
             return true
-        }else{
+        } else {
             return false
         }
     }
-    fun updateNumLPl(numSS:Int, numPl: Int, numL: Int):Boolean{
+
+    fun updateNumLPl(numSS: Int, numPl: Int, numL: Int): Boolean {
         var planeta = sistemaSolarList.get(numSS)?.getPlanetas()?.get(numPl)
-        if(planeta != null){
+        if (planeta != null) {
             planeta.setNumeroLunas(numL)
             return true
-        }else{
+        } else {
             return false
         }
     }
-    fun updateDiametroPl(numSS:Int, numPl: Int, diametro: Double):Boolean{
+
+    fun updateDiametroPl(numSS: Int, numPl: Int, diametro: Double): Boolean {
         var planeta = sistemaSolarList.get(numSS)?.getPlanetas()?.get(numPl)
-        if(planeta != null){
+        if (planeta != null) {
             planeta.setDiametro(diametro)
             return true
-        }else{
+        } else {
             return false
         }
     }
-    fun updateExistenciaVidaPl(numSS:Int, numPl: Int):Boolean{
+
+    fun updateExistenciaVidaPl(numSS: Int, numPl: Int): Boolean {
         var planeta = sistemaSolarList.get(numSS)?.getPlanetas()?.get(numPl)
-        if(planeta != null){
-            if(planeta.getHabitado()){
+        if (planeta != null) {
+            if (planeta.getHabitado()) {
                 planeta.setHabitado(false)
-            }else{
+            } else {
                 planeta.setHabitado(true)
             }
             return true
-        }else{
+        } else {
             return false
         }
     }
-    fun updateClasificacionPl(numSS:Int, numPl: Int, clasificacion:Char):Boolean{
+
+    fun updateClasificacionPl(numSS: Int, numPl: Int, clasificacion: Char): Boolean {
         var planeta = sistemaSolarList.get(numSS)?.getPlanetas()?.get(numPl)
-        if(planeta != null){
+        if (planeta != null) {
             planeta.setClasificacion(clasificacion)
             return true
-        }else{
+        } else {
             return false
         }
     }
-    fun guardar(){
-        var gson = Gson()
-        var json = gson.toJson(this)
-        FileWriter("sistemaSolar.json").use { writer ->
+
+    fun guardar() {
+        val gson = GsonBuilder()
+            .setDateFormat("yyyy-MM-dd")
+            .create()
+        val json = gson.toJson(this)
+        FileWriter("src/main/sistemaSolar.json").use { writer ->
             writer.write(json)
         }
 
